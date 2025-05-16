@@ -154,7 +154,8 @@ export class AppComponent {
 
   drawNumber(coords: [x: number, y: number], number: number) {
     this.ctx.font = "50px serif";
-    this.ctx.fillStyle = "rgb(255, 255, 255)"
+    //this.ctx.fillStyle = "rgb(255, 255, 255)"
+    this.ctx.fillStyle = "rgb(0, 0, 0)"
     this.ctx.fillText(String(number), coords[0], coords[1])
   }
 
