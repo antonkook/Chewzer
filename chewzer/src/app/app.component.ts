@@ -22,6 +22,7 @@ export class AppComponent {
   private players!: Array<[number, number]>
   private playerCount!: number
   private blockDrawing: boolean = true
+  private KILL_TIME: number = 2000
 
   ngAfterViewInit(): void {
     this.isCountdownStarted = false
@@ -87,46 +88,54 @@ export class AppComponent {
         
         // select winner randomly
         this.selectWinner()
-        
-        // empty players
-        this.playerCount = 0
-        while (this.players.length > 0)
-          this.players.pop()
       }
     },1000)
   }
 
-  selectWinner() {
-    // console.log("we have " + this.playerCount + " players.")
-    const winner: number = this.rndInt(0, this.playerCount - 1)
-    // console.log("the winner is: " + winner)
-    const coords = this.players[winner]
+  async selectWinner() {
+    // debug
+    //console.log("we have " + this.playerCount + " players.")
 
-    this.winnerAnimation(coords)
+    let placement: number = 1
+    for (let i = 0; i < this.playerCount; i++) {
+      const winner: number = this.rndInt(0, this.playerCount - 1 - i)
+      // console.log("the winner is: " + winner)
+      const coords = this.players[winner]
+      this.players.splice(winner, 1)
+
+      this.winnerAnimation(coords, placement)
+      await this.delay(500)
+      this.drawNumber(coords, placement)
+      placement++
+    }
+
+    // clear canvas after certain time and reset
+    setTimeout(() => {
+      // empty players
+      this.playerCount = 0
+      while (this.players.length > 0)
+        this.players.pop()
+
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      this.timeLeft = this.TIMER_MAX
+      this.isCountdownStarted = false
+    }, this.KILL_TIME);
+
   }
 
-  winnerAnimation(coords: [x: number, y: number]) {
+  winnerAnimation(coords: [x: number, y: number], placement: number) {
     // parameters
     const framerate = 10;
     const frames = 50;
-    const killTime = 2000;
     let timeout = 0;
 
     // expand ball periodically
     for (let i = 0; i < frames; i++, timeout += framerate) {
       setTimeout(() => {
         const size: number = this.CIRCLE_RAD + 2 * i;
-        this.drawCircle(coords, "rgba(255, 243, 212, 0.07)", "rgba(231, 179, 22, 0.07)", size)
+        this.drawCircle(coords, "rgba(255, 243, 212, 0.04)", "rgba(231, 179, 22, 0.04)", size)
       }, timeout);
     }
-
-    // clear canvas after certain time
-    setTimeout(() => {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-      this.timeLeft = this.TIMER_MAX
-      this.isCountdownStarted = false
-    }, killTime);
-    
   }
 
   drawCircle(coords: [x: number, y: number], color1: string, color2: string, size: number) {
@@ -143,8 +152,18 @@ export class AppComponent {
     this.ctx.fill()
   }
 
+  drawNumber(coords: [x: number, y: number], number: number) {
+    this.ctx.font = "50px serif";
+    this.ctx.fillStyle = "rgb(255, 255, 255)"
+    this.ctx.fillText(String(number), coords[0], coords[1])
+  }
+
   rndInt(min: number, max: number) { // min and max included 
     return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
 }
