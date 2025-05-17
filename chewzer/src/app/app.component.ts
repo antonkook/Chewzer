@@ -15,7 +15,7 @@ export class AppComponent {
   private rect!: DOMRect
   private ctx!: CanvasRenderingContext2D
   private isCountdownStarted!: boolean
-  private TIMER_MAX: number = 5
+  private TIMER_MAX: number = 3
   private CIRCLE_RAD: number = 50
   protected timeLeft!: number
   private interval!: ReturnType<typeof setTimeout>
@@ -33,8 +33,8 @@ export class AppComponent {
     this.rect = this.canvas.getBoundingClientRect()
     this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D
 
-    // this.canvas.addEventListener('touchstart', (event) => this.handlePress(event))
-    this.canvas.addEventListener('click', (event) => this.handleClick(event))
+    this.canvas.addEventListener('touchstart', (event) => this.handlePress(event))
+    //this.canvas.addEventListener('click', (event) => this.handleClick(event))
     
   }
 
@@ -64,17 +64,36 @@ export class AppComponent {
     
   }
 
-  // handlePress(event: TouchEvent) {
-  //   // press coordinates
-  //   const mouseX = event.clientX - this.rect.left
-  //   const mouseY = event.clientY - this.rect.top
-  //   const coords = [mouseX, mouseY]
+  handlePress(event: TouchEvent) {
+    // prevent mouse emulation
+    event.preventDefault()
 
-  //   // debug
-  //   console.log(coords)
+    // start countdown if first press
+    if (this.isCountdownStarted == false) {
+      this.isCountdownStarted = true
+      this.blockDrawing = false
+      this.startCountdown()
+    }
+      
+    if (!this.blockDrawing) {
+      for (let i = 0; i < event.touches.length; i++) {
+        // touch coordinates
+        const touch = event.touches[0] || event.changedTouches[0]
+        const touchX = touch.clientX - this.rect.left
+        const touchY = touch.clientY - this.rect.top
+        const coords: [x: number, y: number] = [touchX, touchY]
 
-  //   this.drawCircle(coords)
-  // }
+        // debug
+        // console.log(coords)
+
+        // push new player into players array
+        this.players.push(coords)  
+        this.playerCount++
+
+        this.drawCircle(coords, "rgba(224, 34, 53, 1)", "rgba(46, 6, 6, 1)", this.CIRCLE_RAD)
+      }
+    }
+  }
 
   startCountdown() {
     this.interval = setInterval(() => {
