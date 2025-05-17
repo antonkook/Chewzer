@@ -21,6 +21,7 @@ export class AppComponent {
   private interval!: ReturnType<typeof setTimeout>
   private players!: Array<[number, number]>
   private playerCount!: number
+  //private touchCount!: number
   private blockDrawing: boolean = true
   private KILL_TIME: number = 2000
 
@@ -29,13 +30,20 @@ export class AppComponent {
     this.timeLeft = this.TIMER_MAX
     this.players = []
     this.playerCount = 0
+    //this.touchCount = 0
     this.canvas = document.getElementById('area') as HTMLCanvasElement
+    this.resizeCanvas()
     this.rect = this.canvas.getBoundingClientRect()
     this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D
 
     this.canvas.addEventListener('touchstart', (event) => this.handlePress(event))
     //this.canvas.addEventListener('click', (event) => this.handleClick(event))
     
+  }
+
+  resizeCanvas() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
   }
 
   handleClick(event: MouseEvent) {
@@ -76,22 +84,25 @@ export class AppComponent {
     }
       
     if (!this.blockDrawing) {
-      for (let i = 0; i < event.touches.length; i++) {
-        // touch coordinates
-        const touch = event.touches[0] || event.changedTouches[0]
-        const touchX = touch.clientX - this.rect.left
-        const touchY = touch.clientY - this.rect.top
-        const coords: [x: number, y: number] = [touchX, touchY]
+      // touch coordinates
+      // const touch = event.touches[this.touchCount]// || event.changedTouches[0]
+      // this.touchCount++
+      const touch = event.touches[event.touches.length - 1]
+      
+      const touchX = touch.clientX - this.rect.left
+      const touchY = touch.clientY - this.rect.top
 
-        // debug
-        // console.log(coords)
+      const coords: [x: number, y: number] = [touchX, touchY]
 
-        // push new player into players array
-        this.players.push(coords)  
-        this.playerCount++
+      // debug
+      // console.log(coords)
 
-        this.drawCircle(coords, "rgba(224, 34, 53, 1)", "rgba(46, 6, 6, 1)", this.CIRCLE_RAD)
-      }
+      // push new player into players array
+      this.players.push(coords)  
+      this.playerCount++
+
+      this.drawCircle(coords, "rgba(224, 34, 53, 1)", "rgba(46, 6, 6, 1)", this.CIRCLE_RAD)
+      
     }
   }
 
@@ -132,6 +143,7 @@ export class AppComponent {
     setTimeout(() => {
       // empty players
       this.playerCount = 0
+      //this.touchCount = 0
       while (this.players.length > 0)
         this.players.pop()
 
